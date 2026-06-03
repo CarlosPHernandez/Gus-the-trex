@@ -26,7 +26,9 @@
         placeholder="e.g. Alex at the coffee shop"
       />
       <p class="modal__note">
-        No charge today. This records a non-binding pledge for the public campaign total.
+        No charge today. This records a <strong>non-binding</strong> pledge on the public total. When we’re ready to accept
+        donations (legal entity, terms, and card processing), we’ll email you a <strong>secure link</strong> to complete
+        payment—only if you still choose to give.
       </p>
       <button type="submit" class="btn modal__submit" id="pledge-submit">Add to campaign</button>
     </form>
@@ -224,8 +226,8 @@
         });
         setStatus(
           mail.sent
-            ? "Pledge confirmed. Check your inbox — everyone will see the updated total."
-            : "Pledge confirmed. Everyone will see the updated total.",
+            ? "Pledge recorded. Check your inbox for confirmation. We’ll send a secure payment link when checkout is live—not before terms are published. Everyone will see the updated total."
+            : "Pledge recorded. We’ll send a secure payment link when checkout is live—not before terms are published. Everyone will see the updated total.",
           "ok",
         );
         notifyCampaignUpdated();
@@ -239,7 +241,7 @@
       if (form instanceof HTMLFormElement) form.hidden = true;
       notifyCampaignUpdated();
       setStatus(
-        "Pledge saved on this device. For a public total everywhere, connect Supabase (see README).",
+        "Pledge saved on this device. When checkout is live, pledgers get a secure payment link by email—not before terms are published. For a public total everywhere, connect Supabase (see README).",
         "ok",
       );
     }

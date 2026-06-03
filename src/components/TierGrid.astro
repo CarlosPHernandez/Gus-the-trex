@@ -12,7 +12,8 @@ const tiers = [
   <div class="container">
     <h2 id="tiers-heading" class="display tiers__title">Pledge tiers</h2>
     <p class="tiers__sub">
-      Non-binding pledges — no charge today. Tap a tier to add dollars to the public campaign total (live when Supabase is connected).
+      Non-binding pledges — no charge today. Tap a tier to record your amount on the public total; when donations are ready, we’ll
+      email a secure link to complete payment (only if you still choose to give). Live tally when Supabase is connected.
       <a href="#faq">Read the pledge FAQ</a>.
     </p>
     <ul class="tiers__grid">
@@ -29,7 +30,7 @@ const tiers = [
                 data-tier-amount={tier.amount}
                 data-tier-name={tier.name}
               >
-                Pledge
+                Record pledge
               </button>
             </article>
           </li>

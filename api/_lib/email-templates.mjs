@@ -88,7 +88,8 @@ export function pledgeConfirmationEmail({
   const title = "Pledge recorded";
   const lede = `${greeting} your non-binding pledge is on the public campaign total.`;
   const bodyHtml = `<p style="margin:0 0 12px;"><strong>${safeTierName}</strong> tier · <strong>$${amountLabel}</strong> (non-binding)</p>
-<p style="margin:0;">This is not a charge — it records your intent so others can see momentum toward public stewardship before the Sotheby&apos;s auction on 14 July 2026.</p>`;
+<p style="margin:0 0 12px;">This is not a charge — it records your intent so others can see momentum toward public stewardship before the Sotheby&apos;s auction on 14 July 2026.</p>
+<p style="margin:0;">When we&apos;re ready to accept donations (legal entity, published terms, and card processing), we&apos;ll email you a <strong>secure, one-time link</strong> to complete payment—only if you still choose to give.</p>`;
 
   const plainTierName = typeof tierName === "string" ? tierName.trim() : "";
 
@@ -104,7 +105,11 @@ export function pledgeConfirmationEmail({
       "",
       "This is not a charge.",
       "",
+      "When checkout is live, we'll email a secure, one-time link to complete payment—only if you still choose to give, and not before terms are published.",
+      "",
       siteUrl ? `Campaign: ${siteUrl}` : "",
+      "",
+      "Non-binding. No charge today. Secure payment link when checkout is live.",
     ]
       .filter(Boolean)
       .join("\n"),
