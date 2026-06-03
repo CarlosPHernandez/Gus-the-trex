@@ -6,6 +6,16 @@
     <h2 id="modal-title" class="modal__title display">Record your pledge</h2>
     <p id="modal-tier-line" class="modal__tier-line"></p>
     <form id="pledge-form" class="modal__form">
+      <label class="modal__label" for="pledge-email">Email (required)</label>
+      <input
+        type="email"
+        id="pledge-email"
+        name="email"
+        class="modal__input"
+        autocomplete="email"
+        placeholder="you@example.org"
+        required
+      />
       <label class="modal__label" for="pledge-name">Name (optional)</label>
       <input
         type="text"
@@ -96,20 +106,27 @@
 <script>
   import {
     isCampaignLive,
+    normalizeCampaignEmail,
     recordPledge,
     notifyCampaignUpdated,
   } from "../lib/campaign.ts";
   import { addLocalPledge } from "../lib/campaignLocal.ts";
+  import { sendCampaignEmail } from "../lib/sendCampaignEmail.ts";
 
   const modal = document.getElementById("pledge-modal");
   const tierLine = document.getElementById("modal-tier-line");
   const form = document.getElementById("pledge-form");
+  const emailInput = document.getElementById("pledge-email");
   const nameInput = document.getElementById("pledge-name");
   const statusEl = document.getElementById("modal-status");
   const submitBtn = document.getElementById("pledge-submit");
 
+  const SUBMIT_LABEL = "Add to campaign";
+
   let selectedAmount = 0;
   let selectedTier = "Patron";
+  let isSubmitting = false;
+  let pledgeRecorded = false;
 
   function setStatus(message: string, kind: "ok" | "warn" | "") {
     if (!statusEl) return;
@@ -118,16 +135,27 @@
     if (kind) statusEl.classList.add(`modal__status--${kind}`);
   }
 
+  function resetSubmitButton() {
+    if (!(submitBtn instanceof HTMLButtonElement)) return;
+    submitBtn.disabled = false;
+    submitBtn.textContent = SUBMIT_LABEL;
+  }
+
   function openModal(amount: number, name: string) {
     if (!modal || !tierLine) return;
     selectedAmount = amount;
     selectedTier = name;
+    isSubmitting = false;
+    pledgeRecorded = false;
     modal.hidden = false;
     document.body.style.overflow = "hidden";
     tierLine.textContent = `${name} tier · $${amount.toLocaleString()} (non-binding)`;
     setStatus("", "");
+    if (form instanceof HTMLFormElement) form.hidden = false;
+    resetSubmitButton();
+    if (emailInput instanceof HTMLInputElement) emailInput.value = "";
     if (nameInput instanceof HTMLInputElement) nameInput.value = "";
-    nameInput?.focus();
+    emailInput?.focus();
   }
 
   function closeModal() {
@@ -154,37 +182,72 @@
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (isSubmitting || pledgeRecorded) return;
+
+    const rawEmail =
+      emailInput instanceof HTMLInputElement ? emailInput.value : "";
+    const email = normalizeCampaignEmail(rawEmail);
     const displayName =
       nameInput instanceof HTMLInputElement ? nameInput.value.trim() : "";
 
-    if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = true;
+    if (!email) {
+      setStatus("Enter a valid email to confirm your pledge.", "warn");
+      emailInput?.focus();
+      return;
+    }
+
+    isSubmitting = true;
+    if (submitBtn instanceof HTMLButtonElement) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Recording…";
+    }
+
+    let success = false;
 
     if (isCampaignLive()) {
       const result = await recordPledge({
         amountDollars: selectedAmount,
         tierName: selectedTier,
+        email,
         displayName: displayName || undefined,
       });
       if (result.ok) {
-        setStatus("Pledge recorded. Everyone will see the updated total.", "ok");
+        success = true;
+        pledgeRecorded = true;
+        if (form instanceof HTMLFormElement) form.hidden = true;
+        const mail = await sendCampaignEmail({
+          type: "pledge_confirmation",
+          email,
+          tierName: selectedTier,
+          amountDollars: selectedAmount,
+          displayName: displayName || undefined,
+        });
+        setStatus(
+          mail.sent
+            ? "Pledge confirmed. Check your inbox — everyone will see the updated total."
+            : "Pledge confirmed. Everyone will see the updated total.",
+          "ok",
+        );
         notifyCampaignUpdated();
       } else {
         setStatus(result.message, "warn");
       }
     } else {
-      addLocalPledge(selectedAmount, selectedTier, displayName || undefined);
+      addLocalPledge(selectedAmount, selectedTier, email, displayName || undefined);
+      success = true;
+      pledgeRecorded = true;
+      if (form instanceof HTMLFormElement) form.hidden = true;
       notifyCampaignUpdated();
       setStatus(
-        "Saved on this device. For a public total everywhere, run: npm run add-pledge -- " +
-          selectedAmount +
-          " " +
-          selectedTier +
-          (displayName ? ` "${displayName}"` : "") +
-          " — or connect Supabase (see README).",
+        "Pledge saved on this device. For a public total everywhere, connect Supabase (see README).",
         "ok",
       );
     }
 
-    if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = false;
+    isSubmitting = false;
+    if (!success && submitBtn instanceof HTMLButtonElement) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = SUBMIT_LABEL;
+    }
   });
 </script>

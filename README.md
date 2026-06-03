@@ -48,6 +48,36 @@ CLI (in-person or if the phone browser fails):
 npm run add-pledge -- 25 Trace "Coffee shop guest"
 ```
 
+## Email (Resend)
+
+Transactional emails send after a successful coalition signup or tier pledge (when Resend is configured on Vercel).
+
+### Quick test (Hello World)
+
+1. Create an API key at [resend.com/api-keys](https://resend.com/api-keys).
+2. In `.env.local`, set `RESEND_API_KEY=re_xxxxxxxxx` — **replace `re_xxxxxxxxx` with your real API key**.
+3. Run:
+
+   ```bash
+   npm run test-email
+   ```
+
+   Sends to `keepguspublic@gmail.com` from `onboarding@resend.dev` (Resend’s sandbox sender). Override recipient: `npm run test-email -- you@example.com`.
+
+### Production campaign emails
+
+1. Verify your sending domain in Resend → **Domains**.
+2. Add to `.env.local` and **Vercel** (server-only, not `PUBLIC_`):
+
+   - `RESEND_API_KEY` — your real key (not `re_xxxxxxxxx`)
+   - `RESEND_FROM_EMAIL` — e.g. `Gus Campaign <campaign@yourdomain.com>`
+   - `SUPABASE_SERVICE_ROLE_KEY` — confirms the signup/pledge exists before sending (anti-abuse)
+   - `CAMPAIGN_SITE_URL` — optional; production URL for links in emails
+
+3. Redeploy. API route: `POST /api/campaign-email` (see `api/campaign-email.mjs`).
+
+Local testing with the API route: `npm run dev:vercel` (requires [Vercel CLI](https://vercel.com/docs/cli)). Plain `npm run dev` does not run `/api` routes.
+
 ## Deploy
 
-Static output works on Vercel, Netlify, or any static host (`dist/` after build). Supabase uses the browser anon key only; never expose `SUPABASE_SERVICE_ROLE_KEY` to the client.
+Static output works on Vercel (`dist/` after build). Vercel also runs `/api/*` serverless functions for Resend. Supabase uses the browser anon key only; never expose `SUPABASE_SERVICE_ROLE_KEY` or `RESEND_API_KEY` to the client.

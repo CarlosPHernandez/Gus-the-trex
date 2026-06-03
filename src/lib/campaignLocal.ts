@@ -1,7 +1,7 @@
 const PLEDGE_KEY = "gus-demo-pledges";
 const COALITION_KEY = "gus-coalition-emails";
 
-type LocalPledge = { cents: number; tierName: string; displayName?: string };
+type LocalPledge = { cents: number; tierName: string; email: string; displayName?: string };
 
 export function getLocalPledgeBonus(): { cents: number; count: number } {
   try {
@@ -18,11 +18,17 @@ export function getLocalPledgeBonus(): { cents: number; count: number } {
   }
 }
 
-export function addLocalPledge(amountDollars: number, tierName: string, displayName?: string) {
+export function addLocalPledge(
+  amountDollars: number,
+  tierName: string,
+  email: string,
+  displayName?: string,
+) {
   const list = JSON.parse(localStorage.getItem(PLEDGE_KEY) ?? "[]") as LocalPledge[];
   list.push({
     cents: Math.round(amountDollars * 100),
     tierName,
+    email: email.trim().toLowerCase(),
     displayName: displayName?.trim() || undefined,
   });
   localStorage.setItem(PLEDGE_KEY, JSON.stringify(list));

@@ -7,13 +7,16 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "dev:vercel": "vercel dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "add-pledge": "node scripts/add-pledge.mjs"
+    "add-pledge": "node scripts/add-pledge.mjs",
+    "test-email": "node scripts/send-test-email.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
-    "astro": "^6.4.4"
+    "astro": "^6.4.4",
+    "resend": "^6.12.4"
   }
 }

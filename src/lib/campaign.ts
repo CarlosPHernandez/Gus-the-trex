@@ -61,11 +61,17 @@ export function notifyCampaignUpdated() {
   window.dispatchEvent(new CustomEvent(CAMPAIGN_UPDATED));
 }
 
+export function normalizeCampaignEmail(email: string): string | null {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return null;
+  return normalized;
+}
+
 export async function recordPledge(input: {
   amountDollars: number;
   tierName: string;
+  email: string;
   displayName?: string;
-  email?: string;
   source?: string;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const supabase = getSupabase();
@@ -73,11 +79,16 @@ export async function recordPledge(input: {
     return { ok: false, message: "Live database not configured. Use npm run add-pledge or set Supabase env vars." };
   }
 
+  const email = normalizeCampaignEmail(input.email);
+  if (!email) {
+    return { ok: false, message: "Enter a valid email to confirm your pledge." };
+  }
+
   const { error } = await supabase.from("pledges").insert({
     amount_cents: Math.round(input.amountDollars * 100),
     tier_name: input.tierName,
     display_name: input.displayName?.trim() || null,
-    email: input.email?.trim() || null,
+    email,
     source: input.source ?? "web",
   });
 

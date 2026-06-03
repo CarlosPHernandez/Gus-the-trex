@@ -29,7 +29,7 @@
           <button type="submit" class="btn coalition__submit">Join</button>
         </div>
         <p class="coalition__consent">
-          By joining, you agree to receive campaign updates. We won't sell your address. Unsubscribe when email delivery is live.
+          By joining, you agree to receive campaign updates by email. We won't sell your address. Unsubscribe in any message once delivery is live.
         </p>
       </form>
       <p class="coalition__status" id="coalition-status" role="status" aria-live="polite"></p>
@@ -167,6 +167,7 @@
     notifyCampaignUpdated,
   } from "../lib/campaign.ts";
   import { addLocalCoalitionEmail, getLocalCoalitionBonus } from "../lib/campaignLocal.ts";
+  import { sendCampaignEmail } from "../lib/sendCampaignEmail.ts";
 
   const countEl = document.getElementById("coalition-count");
   const fineEl = document.getElementById("coalition-fine");
@@ -211,7 +212,13 @@
     if (isCampaignLive()) {
       const result = await recordCoalitionEmail(email);
       if (result.ok) {
-        setStatus("You're on the coalition. Thank you for standing up for public stewardship.", "ok");
+        const mail = await sendCampaignEmail({ type: "coalition_welcome", email });
+        setStatus(
+          mail.sent
+            ? "You're on the coalition. Check your inbox for a welcome note."
+            : "You're on the coalition. Thank you for standing up for public stewardship.",
+          "ok",
+        );
         emailInput.value = "";
         renderCount();
       } else {
