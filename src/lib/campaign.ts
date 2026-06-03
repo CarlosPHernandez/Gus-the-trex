@@ -93,6 +93,15 @@ export async function recordPledge(input: {
   });
 
   if (error) return { ok: false, message: error.message };
+
+  // Pledge emails count on the public supporter roll (same tally as coalition signup).
+  const { error: coalitionError } = await supabase
+    .from("coalition_members")
+    .insert({ email });
+  if (coalitionError && coalitionError.code !== "23505") {
+    return { ok: false, message: coalitionError.message };
+  }
+
   notifyCampaignUpdated();
   return { ok: true };
 }

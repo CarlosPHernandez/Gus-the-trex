@@ -38,10 +38,19 @@ language sql
 security definer
 set search_path = public
 as $$
+  with supporter_emails as (
+    select lower(trim(email)) as email
+    from coalition_members
+    where email is not null and trim(email) <> ''
+    union
+    select lower(trim(email)) as email
+    from pledges
+    where email is not null and trim(email) <> ''
+  )
   select json_build_object(
     'total_cents', coalesce((select sum(amount_cents)::bigint from pledges), 0),
     'pledge_count', coalesce((select count(*)::bigint from pledges), 0),
-    'coalition_count', coalesce((select count(*)::bigint from coalition_members), 0)
+    'coalition_count', coalesce((select count(*)::bigint from supporter_emails), 0)
   );
 $$;
 

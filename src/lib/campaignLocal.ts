@@ -32,17 +32,40 @@ export function addLocalPledge(
     displayName: displayName?.trim() || undefined,
   });
   localStorage.setItem(PLEDGE_KEY, JSON.stringify(list));
+  addLocalCoalitionEmail(email);
 }
 
-export function getLocalCoalitionBonus(): number {
+function readLocalCoalitionEmails(): string[] {
   try {
     const raw = localStorage.getItem(COALITION_KEY);
-    if (!raw) return 0;
+    if (!raw) return [];
     const list = JSON.parse(raw) as string[];
-    return Array.isArray(list) ? list.length : 0;
+    return Array.isArray(list) ? list.map((e) => e.trim().toLowerCase()).filter(Boolean) : [];
   } catch {
-    return 0;
+    return [];
   }
+}
+
+function readLocalPledgeEmails(): string[] {
+  try {
+    const raw = localStorage.getItem(PLEDGE_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw) as LocalPledge[];
+    if (!Array.isArray(list)) return [];
+    return list.map((p) => p.email?.trim().toLowerCase()).filter(Boolean) as string[];
+  } catch {
+    return [];
+  }
+}
+
+/** Unique supporter emails saved only on this device (coalition form + tier pledges). */
+export function getLocalSupporterBonus(): number {
+  return new Set([...readLocalCoalitionEmails(), ...readLocalPledgeEmails()]).size;
+}
+
+/** @deprecated Use getLocalSupporterBonus — coalition-only signups on this device. */
+export function getLocalCoalitionBonus(): number {
+  return readLocalCoalitionEmails().length;
 }
 
 export function addLocalCoalitionEmail(email: string): boolean {

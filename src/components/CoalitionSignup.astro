@@ -203,7 +203,7 @@
     recordCoalitionEmail,
     notifyCampaignUpdated,
   } from "../lib/campaign.ts";
-  import { addLocalCoalitionEmail, getLocalCoalitionBonus } from "../lib/campaignLocal.ts";
+  import { addLocalCoalitionEmail, getLocalSupporterBonus } from "../lib/campaignLocal.ts";
   import { sendCampaignEmail } from "../lib/sendCampaignEmail.ts";
 
   const countEl = document.getElementById("coalition-count");
@@ -255,7 +255,7 @@
   function renderCount() {
     if (!countEl || !fineEl) return;
     fetchCampaignStats().then((stats) => {
-      const local = getLocalCoalitionBonus();
+      const local = getLocalSupporterBonus();
       const total = stats.coalitionCount + (stats.live ? 0 : local);
       countEl.textContent = total.toLocaleString();
       if (stats.live) {

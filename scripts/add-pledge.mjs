@@ -27,9 +27,10 @@ loadEnv();
 const amount = Number(process.argv[2]);
 const tier = process.argv[3] ?? "Trace";
 const name = process.argv[4] ?? null;
+const emailArg = process.argv[5] ?? null;
 
 if (!Number.isFinite(amount) || amount <= 0) {
-  console.error("Usage: npm run add-pledge -- <dollars> [tierName] [displayName]");
+  console.error("Usage: npm run add-pledge -- <dollars> [tierName] [displayName] [email]");
   process.exit(1);
 }
 
@@ -43,16 +44,32 @@ if (!url || !serviceKey) {
 
 const supabase = createClient(url, serviceKey);
 
+const email =
+  emailArg && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailArg)
+    ? emailArg.trim().toLowerCase()
+    : null;
+
 const { error } = await supabase.from("pledges").insert({
   amount_cents: Math.round(amount * 100),
   tier_name: tier,
   display_name: name,
+  email,
   source: "admin-cli",
 });
 
 if (error) {
   console.error("Insert failed:", error.message);
   process.exit(1);
+}
+
+if (email) {
+  const { error: coalitionError } = await supabase
+    .from("coalition_members")
+    .insert({ email });
+  if (coalitionError && coalitionError.code !== "23505") {
+    console.error("Coalition tally update failed:", coalitionError.message);
+    process.exit(1);
+  }
 }
 
 const { data: stats } = await supabase.rpc("get_campaign_stats");
