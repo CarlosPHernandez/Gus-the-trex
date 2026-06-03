@@ -1,4 +1,6 @@
 ---
+import Analytics from "@vercel/analytics/astro";
+
 interface Props {
   title?: string;
   description?: string;
@@ -9,6 +11,11 @@ const {
   description =
     "Help keep Gus—a remarkably complete Tyrannosaurus rex—in public trust. Campaign for museum stewardship ahead of the July 2026 auction.",
 } = Astro.props;
+
+const site = Astro.site ?? Astro.url;
+const pageUrl = new URL(Astro.url.pathname, site).href;
+const ogImage = new URL("/images/gus-skeleton-profile.jpeg", site).href;
+const favicon = new URL("/favicon.svg", site).href;
 ---
 
 <!doctype html>
@@ -19,8 +26,15 @@ const {
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content="/images/gus-skeleton-profile.jpeg" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>G</text></svg>" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="icon" href={favicon} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={favicon} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -31,6 +45,7 @@ const {
   </head>
   <body>
     <slot />
+    <Analytics />
   </body>
 </html>
 

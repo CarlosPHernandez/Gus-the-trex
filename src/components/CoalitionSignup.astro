@@ -26,12 +26,19 @@
             placeholder="you@example.org"
             required
           />
-          <button type="submit" class="btn coalition__submit">Join</button>
+          <button type="submit" class="btn coalition__submit" id="coalition-submit">Join</button>
         </div>
         <p class="coalition__consent">
           By joining, you agree to receive campaign updates by email. We won't sell your address. Unsubscribe in any message once delivery is live.
         </p>
       </form>
+      <div class="coalition__success" id="coalition-success" hidden>
+        <p class="coalition__success-title">You're on the coalition</p>
+        <p class="coalition__success-detail" id="coalition-success-detail"></p>
+        <button type="button" class="btn btn--ghost coalition__success-reset" id="coalition-reset">
+          Add another email
+        </button>
+      </div>
       <p class="coalition__status" id="coalition-status" role="status" aria-live="polite"></p>
     </div>
   </div>
@@ -147,6 +154,35 @@
     color: var(--clay);
   }
 
+  .coalition__success {
+    padding: 0.25rem 0 0;
+  }
+
+  .coalition__success-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--forest);
+  }
+
+  .coalition__success-detail {
+    margin: 0.5rem 0 1rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--ink) 85%, var(--clay));
+    max-width: 48ch;
+  }
+
+  .coalition__success-reset {
+    width: 100%;
+  }
+
+  @media (min-width: 769px) {
+    .coalition__success-reset {
+      width: auto;
+    }
+  }
+
   @media (max-width: 768px) {
     .coalition__layout {
       grid-template-columns: 1fr;
@@ -163,6 +199,7 @@
     CAMPAIGN_UPDATED,
     fetchCampaignStats,
     isCampaignLive,
+    normalizeCampaignEmail,
     recordCoalitionEmail,
     notifyCampaignUpdated,
   } from "../lib/campaign.ts";
@@ -172,14 +209,47 @@
   const countEl = document.getElementById("coalition-count");
   const fineEl = document.getElementById("coalition-fine");
   const form = document.getElementById("coalition-form");
+  const successPanel = document.getElementById("coalition-success");
+  const successDetail = document.getElementById("coalition-success-detail");
+  const resetBtn = document.getElementById("coalition-reset");
   const emailInput = document.getElementById("coalition-email");
+  const submitBtn = document.getElementById("coalition-submit");
   const statusEl = document.getElementById("coalition-status");
+
+  const SUBMIT_LABEL = "Join";
+
+  let isSubmitting = false;
+  let signupComplete = false;
 
   function setStatus(message: string, kind: "ok" | "warn" | "") {
     if (!statusEl) return;
     statusEl.textContent = message;
     statusEl.classList.remove("coalition__status--ok", "coalition__status--warn");
     if (kind) statusEl.classList.add(`coalition__status--${kind}`);
+  }
+
+  function resetSubmitButton() {
+    if (!(submitBtn instanceof HTMLButtonElement)) return;
+    submitBtn.disabled = false;
+    submitBtn.textContent = SUBMIT_LABEL;
+  }
+
+  function showForm() {
+    signupComplete = false;
+    if (form instanceof HTMLFormElement) form.hidden = false;
+    if (successPanel instanceof HTMLElement) successPanel.hidden = true;
+    setStatus("", "");
+    resetSubmitButton();
+    if (emailInput instanceof HTMLInputElement) emailInput.value = "";
+    emailInput?.focus();
+  }
+
+  function showSuccess(detail: string) {
+    signupComplete = true;
+    if (form instanceof HTMLFormElement) form.hidden = true;
+    if (successPanel instanceof HTMLElement) successPanel.hidden = false;
+    if (successDetail) successDetail.textContent = detail;
+    setStatus("", "");
   }
 
   function renderCount() {
@@ -198,44 +268,60 @@
     });
   }
 
+  resetBtn?.addEventListener("click", showForm);
+
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (isSubmitting || signupComplete) return;
     if (!(emailInput instanceof HTMLInputElement)) return;
 
-    const email = emailInput.value.trim().toLowerCase();
-    if (!email || !email.includes("@")) {
+    const email = normalizeCampaignEmail(emailInput.value);
+    if (!email) {
       setStatus("Enter a valid email address.", "warn");
       emailInput.focus();
       return;
     }
 
+    isSubmitting = true;
+    if (submitBtn instanceof HTMLButtonElement) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Joining…";
+    }
+    setStatus("", "");
+
+    let success = false;
+
     if (isCampaignLive()) {
       const result = await recordCoalitionEmail(email);
       if (result.ok) {
-        const mail = await sendCampaignEmail({ type: "coalition_welcome", email });
-        setStatus(
-          mail.sent
-            ? "You're on the coalition. Check your inbox for a welcome note."
-            : "You're on the coalition. Thank you for standing up for public stewardship.",
-          "ok",
-        );
-        emailInput.value = "";
+        success = true;
         renderCount();
+        const mail = await sendCampaignEmail({ type: "coalition_welcome", email });
+        showSuccess(
+          mail.sent
+            ? "Your email is on the public roll. Check your inbox for a welcome note — the supporter count just updated."
+            : "Your email is on the public roll. Thank you for standing up for public stewardship — the supporter count just updated.",
+        );
+      } else if (result.duplicate) {
+        success = true;
+        showSuccess("That address is already on the coalition roll. You're counted — no need to sign up again.");
       } else {
-        setStatus(result.message, result.duplicate ? "warn" : "warn");
+        setStatus(result.message, "warn");
       }
-      return;
+    } else if (!addLocalCoalitionEmail(email)) {
+      success = true;
+      showSuccess("That email is already saved on this device.");
+    } else {
+      success = true;
+      notifyCampaignUpdated();
+      renderCount();
+      showSuccess(
+        "Saved on this device. Connect Supabase so signups sync to the public tally everywhere.",
+      );
     }
 
-    if (!addLocalCoalitionEmail(email)) {
-      setStatus("You're already on the coalition roll from this device.", "warn");
-      return;
-    }
-
-    notifyCampaignUpdated();
-    renderCount();
-    setStatus("Saved on this device. Connect Supabase so signups sync everywhere.", "ok");
-    emailInput.value = "";
+    isSubmitting = false;
+    if (!success) resetSubmitButton();
   });
 
   renderCount();
