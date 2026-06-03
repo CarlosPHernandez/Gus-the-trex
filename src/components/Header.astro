@@ -1,0 +1,60 @@
+<header class="header">
+  <div class="container header__inner">
+    <div>
+      <p class="eyebrow">Public stewardship campaign</p>
+      <h1 class="display header__title">Gus</h1>
+    </div>
+    <nav class="header__nav" aria-label="Page sections">
+      <a href="#how-it-works">How it works</a>
+      <a href="#coalition">Coalition</a>
+      <a href="#faq">FAQ</a>
+      <span class="header__date">Auction · 14 Jul 2026</span>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .header {
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+    padding: 1.25rem 0;
+  }
+
+  .header__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+  }
+
+  .header__title {
+    margin: 0.15rem 0 0;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+  }
+
+  .header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.85rem 1.1rem;
+    font-size: 0.8rem;
+  }
+
+  .header__nav a {
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--forest);
+  }
+
+  .header__nav a:hover {
+    text-decoration: underline;
+  }
+
+  .header__date {
+    margin: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--clay);
+  }
+</style>

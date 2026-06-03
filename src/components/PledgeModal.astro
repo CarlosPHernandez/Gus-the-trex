@@ -1,0 +1,190 @@
+<div class="modal" id="pledge-modal" hidden>
+  <div class="modal__backdrop" data-close-modal></div>
+  <div class="modal__panel" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+    <button type="button" class="modal__close" data-close-modal aria-label="Close">×</button>
+    <p class="eyebrow">Non-binding pledge</p>
+    <h2 id="modal-title" class="modal__title display">Record your pledge</h2>
+    <p id="modal-tier-line" class="modal__tier-line"></p>
+    <form id="pledge-form" class="modal__form">
+      <label class="modal__label" for="pledge-name">Name (optional)</label>
+      <input
+        type="text"
+        id="pledge-name"
+        name="displayName"
+        class="modal__input"
+        autocomplete="name"
+        placeholder="e.g. Alex at the coffee shop"
+      />
+      <p class="modal__note">
+        No charge today. This records a non-binding pledge for the public campaign total.
+      </p>
+      <button type="submit" class="btn modal__submit" id="pledge-submit">Add to campaign</button>
+    </form>
+    <p id="modal-status" class="modal__status" role="status" aria-live="polite"></p>
+    <button type="button" class="btn btn--ghost modal__dismiss" data-close-modal>Close</button>
+  </div>
+</div>
+
+<style>
+  .modal__title {
+    margin: 0.35rem 0 0.5rem;
+    font-size: 1.35rem;
+    font-style: normal;
+  }
+
+  .modal__tier-line {
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    color: var(--clay);
+  }
+
+  .modal__form {
+    margin: 0;
+  }
+
+  .modal__label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 0.35rem;
+  }
+
+  .modal__input {
+    width: 100%;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+    border-radius: var(--radius);
+    background: var(--bone);
+    margin-bottom: 0.75rem;
+  }
+
+  .modal__note {
+    margin: 0 0 1rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--clay);
+  }
+
+  .modal__submit {
+    width: 100%;
+  }
+
+  .modal__status {
+    margin: 0.85rem 0 0;
+    font-size: 0.88rem;
+    min-height: 1.25em;
+  }
+
+  .modal__status--ok {
+    color: var(--forest);
+  }
+
+  .modal__status--warn {
+    color: var(--clay);
+  }
+
+  .modal__dismiss {
+    width: 100%;
+    margin-top: 0.65rem;
+  }
+</style>
+
+<script>
+  import {
+    isCampaignLive,
+    recordPledge,
+    notifyCampaignUpdated,
+  } from "../lib/campaign.ts";
+  import { addLocalPledge } from "../lib/campaignLocal.ts";
+
+  const modal = document.getElementById("pledge-modal");
+  const tierLine = document.getElementById("modal-tier-line");
+  const form = document.getElementById("pledge-form");
+  const nameInput = document.getElementById("pledge-name");
+  const statusEl = document.getElementById("modal-status");
+  const submitBtn = document.getElementById("pledge-submit");
+
+  let selectedAmount = 0;
+  let selectedTier = "Patron";
+
+  function setStatus(message: string, kind: "ok" | "warn" | "") {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.remove("modal__status--ok", "modal__status--warn");
+    if (kind) statusEl.classList.add(`modal__status--${kind}`);
+  }
+
+  function openModal(amount: number, name: string) {
+    if (!modal || !tierLine) return;
+    selectedAmount = amount;
+    selectedTier = name;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    tierLine.textContent = `${name} tier · $${amount.toLocaleString()} (non-binding)`;
+    setStatus("", "");
+    if (nameInput instanceof HTMLInputElement) nameInput.value = "";
+    nameInput?.focus();
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.querySelectorAll("[data-tier-amount]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const amount = Number((btn as HTMLElement).dataset.tierAmount);
+      const name = (btn as HTMLElement).dataset.tierName ?? "Patron";
+      openModal(amount, name);
+    });
+  });
+
+  document.querySelectorAll("[data-close-modal]").forEach((el) => {
+    el.addEventListener("click", closeModal);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal && !modal.hidden) closeModal();
+  });
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const displayName =
+      nameInput instanceof HTMLInputElement ? nameInput.value.trim() : "";
+
+    if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = true;
+
+    if (isCampaignLive()) {
+      const result = await recordPledge({
+        amountDollars: selectedAmount,
+        tierName: selectedTier,
+        displayName: displayName || undefined,
+      });
+      if (result.ok) {
+        setStatus("Pledge recorded. Everyone will see the updated total.", "ok");
+        notifyCampaignUpdated();
+      } else {
+        setStatus(result.message, "warn");
+      }
+    } else {
+      addLocalPledge(selectedAmount, selectedTier, displayName || undefined);
+      notifyCampaignUpdated();
+      setStatus(
+        "Saved on this device. For a public total everywhere, run: npm run add-pledge -- " +
+          selectedAmount +
+          " " +
+          selectedTier +
+          (displayName ? ` "${displayName}"` : "") +
+          " — or connect Supabase (see README).",
+        "ok",
+      );
+    }
+
+    if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = false;
+  });
+</script>

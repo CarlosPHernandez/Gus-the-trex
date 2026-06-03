@@ -1,0 +1,236 @@
+---
+---
+
+<section class="coalition" id="coalition" aria-labelledby="coalition-heading">
+  <div class="container coalition__layout">
+    <div class="coalition__count card">
+      <p class="eyebrow">Public coalition</p>
+      <p class="coalition__number" id="coalition-count" aria-live="polite">—</p>
+      <p class="coalition__label">supporters on record</p>
+      <p class="coalition__fine" id="coalition-fine">Loading tally…</p>
+    </div>
+    <div class="coalition__form-wrap card">
+      <h2 id="coalition-heading" class="display coalition__title">Join the coalition</h2>
+      <p class="coalition__lede">
+        Add your email to the public roll. No payment required. We'll share auction updates and next steps when payments launch.
+      </p>
+      <form class="coalition__form" id="coalition-form" novalidate>
+        <label class="coalition__label-field" for="coalition-email">Email</label>
+        <div class="coalition__row">
+          <input
+            type="email"
+            id="coalition-email"
+            name="email"
+            class="coalition__input"
+            autocomplete="email"
+            placeholder="you@example.org"
+            required
+          />
+          <button type="submit" class="btn coalition__submit">Join</button>
+        </div>
+        <p class="coalition__consent">
+          By joining, you agree to receive campaign updates. We won't sell your address. Unsubscribe when email delivery is live.
+        </p>
+      </form>
+      <p class="coalition__status" id="coalition-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .coalition {
+    padding: 2rem 0 3rem;
+    background: color-mix(in srgb, var(--parchment) 55%, var(--bone));
+    border-top: 1px solid color-mix(in srgb, var(--clay) 30%, transparent);
+  }
+
+  .coalition__layout {
+    display: grid;
+    grid-template-columns: 0.42fr 0.58fr;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .coalition__count {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .coalition__number {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    line-height: 1;
+  }
+
+  .coalition__label {
+    margin: 0.25rem 0 0;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--clay);
+  }
+
+  .coalition__fine {
+    margin: 1rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--clay);
+  }
+
+  .coalition__form-wrap {
+    padding: 1.75rem;
+  }
+
+  .coalition__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .coalition__lede {
+    margin: 0 0 1.25rem;
+    font-size: 0.92rem;
+    color: color-mix(in srgb, var(--ink) 85%, var(--clay));
+    max-width: 48ch;
+  }
+
+  .coalition__label-field {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 0.35rem;
+  }
+
+  .coalition__row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .coalition__input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+    border-radius: var(--radius);
+    background: var(--bone);
+  }
+
+  .coalition__submit {
+    flex-shrink: 0;
+  }
+
+  .coalition__consent {
+    margin: 0.65rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--clay);
+  }
+
+  .coalition__status {
+    margin: 0.85rem 0 0;
+    font-size: 0.88rem;
+    min-height: 1.25em;
+  }
+
+  .coalition__status--ok {
+    color: var(--forest);
+  }
+
+  .coalition__status--warn {
+    color: var(--clay);
+  }
+
+  @media (max-width: 768px) {
+    .coalition__layout {
+      grid-template-columns: 1fr;
+    }
+
+    .coalition__row {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  import {
+    CAMPAIGN_UPDATED,
+    fetchCampaignStats,
+    isCampaignLive,
+    recordCoalitionEmail,
+    notifyCampaignUpdated,
+  } from "../lib/campaign.ts";
+  import { addLocalCoalitionEmail, getLocalCoalitionBonus } from "../lib/campaignLocal.ts";
+
+  const countEl = document.getElementById("coalition-count");
+  const fineEl = document.getElementById("coalition-fine");
+  const form = document.getElementById("coalition-form");
+  const emailInput = document.getElementById("coalition-email");
+  const statusEl = document.getElementById("coalition-status");
+
+  function setStatus(message: string, kind: "ok" | "warn" | "") {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.remove("coalition__status--ok", "coalition__status--warn");
+    if (kind) statusEl.classList.add(`coalition__status--${kind}`);
+  }
+
+  function renderCount() {
+    if (!countEl || !fineEl) return;
+    fetchCampaignStats().then((stats) => {
+      const local = getLocalCoalitionBonus();
+      const total = stats.coalitionCount + (stats.live ? 0 : local);
+      countEl.textContent = total.toLocaleString();
+      if (stats.live) {
+        fineEl.textContent = "Live coalition tally · updates as people join";
+      } else if (local > 0) {
+        fineEl.textContent = `${stats.coalitionCount.toLocaleString()} on file · ${local.toLocaleString()} on this device (pending sync)`;
+      } else {
+        fineEl.textContent = "Connect Supabase for a shared public count across all devices";
+      }
+    });
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!(emailInput instanceof HTMLInputElement)) return;
+
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      setStatus("Enter a valid email address.", "warn");
+      emailInput.focus();
+      return;
+    }
+
+    if (isCampaignLive()) {
+      const result = await recordCoalitionEmail(email);
+      if (result.ok) {
+        setStatus("You're on the coalition. Thank you for standing up for public stewardship.", "ok");
+        emailInput.value = "";
+        renderCount();
+      } else {
+        setStatus(result.message, result.duplicate ? "warn" : "warn");
+      }
+      return;
+    }
+
+    if (!addLocalCoalitionEmail(email)) {
+      setStatus("You're already on the coalition roll from this device.", "warn");
+      return;
+    }
+
+    notifyCampaignUpdated();
+    renderCount();
+    setStatus("Saved on this device. Connect Supabase so signups sync everywhere.", "ok");
+    emailInput.value = "";
+  });
+
+  renderCount();
+  window.addEventListener(CAMPAIGN_UPDATED, renderCount);
+</script>

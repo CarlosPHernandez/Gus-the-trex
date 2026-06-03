@@ -1,0 +1,146 @@
+---
+---
+
+<section class="slider" aria-labelledby="slider-heading">
+  <h2 id="slider-heading" class="sr-only">Alive to skeletal comparison</h2>
+  <div class="slider__frame">
+    <img
+      class="slider__layer slider__layer--skeleton"
+      src="/images/gus-skeleton-profile.jpeg"
+      alt="Gus T. rex fossil skeleton mounted in profile"
+      width="1600"
+      height="900"
+    />
+    <img
+      class="slider__layer slider__layer--alive"
+      id="alive-layer"
+      src="/images/gus-alive.png"
+      alt="Life reconstruction of Gus the T. rex in the same landscape as the fossil mount"
+      width="1600"
+      height="900"
+    />
+    <div class="slider__labels" aria-hidden="true">
+      <span>Alive</span>
+      <span>Skeletal</span>
+    </div>
+  </div>
+  <label class="slider__control" for="gus-reveal">
+    <span class="sr-only">Reveal fossil skeleton</span>
+    <input
+      type="range"
+      id="gus-reveal"
+      class="slider__input"
+      min="0"
+      max="100"
+      value="0"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={0}
+      aria-label="Drag to reveal the fossil skeleton beneath the living reconstruction"
+    />
+  </label>
+  <p class="slider__hint">Drag to collapse sixty-seven million years into bone.</p>
+</section>
+
+<style>
+  .slider {
+    width: 100%;
+  }
+
+  .slider__frame {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px solid color-mix(in srgb, var(--clay) 40%, transparent);
+    background: var(--ink);
+  }
+
+  .slider__layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .slider__layer--alive {
+    clip-path: inset(0 100% 0 0);
+    z-index: 2;
+    transition: clip-path 0.05s linear;
+  }
+
+  .slider__labels {
+    position: absolute;
+    inset: auto 0 0.75rem 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1rem;
+    z-index: 3;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--parchment);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
+    pointer-events: none;
+  }
+
+  .slider__control {
+    display: block;
+    margin-top: 0.85rem;
+  }
+
+  .slider__input {
+    width: 100%;
+    height: 2rem;
+    margin: 0;
+    accent-color: var(--forest);
+    cursor: ew-resize;
+    touch-action: pan-x;
+  }
+
+  .slider__input::-webkit-slider-thumb {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .slider__input::-moz-range-thumb {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .slider__hint {
+    margin: 0.5rem 0 0;
+    font-size: 0.88rem;
+    color: var(--clay);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slider__layer--alive {
+      clip-path: inset(0 50% 0 0);
+    }
+  }
+</style>
+
+<script>
+  const input = document.getElementById("gus-reveal") as HTMLInputElement | null;
+  const alive = document.getElementById("alive-layer") as HTMLElement | null;
+
+  function apply(value: number) {
+    if (!input || !alive) return;
+    const clip = 100 - value;
+    alive.style.clipPath = `inset(0 ${clip}% 0 0)`;
+    input.setAttribute("aria-valuenow", String(value));
+  }
+
+  if (input && alive) {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      input.value = "50";
+      apply(50);
+    }
+
+    input.addEventListener("input", () => apply(Number(input.value)));
+    apply(Number(input.value));
+  }
+</script>

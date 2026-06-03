@@ -1,0 +1,119 @@
+---
+const steps = [
+  {
+    num: "01",
+    title: "Signal public demand",
+    body: "Join the coalition with your email and record a non-binding pledge tier. Together these numbers show museums, donors, and press that Gus belongs in public stewardship—not a private vault.",
+  },
+  {
+    num: "02",
+    title: "Organize institutions",
+    body: "A $20–30M auction requires a consortium, not a single checkout. We advocate for the same playbook that brought Sue to Chicago's Field Museum: museums, philanthropists, and civic partners coordinating before and after the hammer.",
+  },
+  {
+    num: "03",
+    title: "Secure stewardship",
+    body: "The goal is permanent access for research and education—whether through a winning consortium bid, a post-auction arrangement, or public pressure that keeps the specimen in trust. Small pledges seed coordination; institutions carry the scale.",
+  },
+];
+---
+
+<section class="how" id="how-it-works" aria-labelledby="how-heading">
+  <div class="container">
+    <h2 id="how-heading" class="display how__title">How it works</h2>
+    <p class="how__lede">
+      This is a grassroots stewardship campaign, not a direct purchase button. Your participation helps build the case before
+      <strong>14 July 2026</strong>.
+    </p>
+    <ol class="how__steps">
+      {
+        steps.map((step) => (
+          <li class="how__step card">
+            <p class="how__num" aria-hidden="true">{step.num}</p>
+            <h3 class="how__step-title">{step.title}</h3>
+            <p class="how__step-body">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <aside class="how__precedent card">
+      <p class="eyebrow">Precedent</p>
+      <p class="how__precedent-text">
+        In 1997, <em>Sue</em> became the first <em>T. rex</em> sold at auction. The Field Museum acquired the skeleton through
+        a coalition of donors and institutions—not a lone private collector. Gus deserves the same outcome.
+      </p>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .how {
+    padding: 2.5rem 0 1rem;
+    border-top: 1px solid color-mix(in srgb, var(--clay) 30%, transparent);
+  }
+
+  .how__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+  }
+
+  .how__lede {
+    margin: 0 0 1.75rem;
+    max-width: 58ch;
+    color: var(--clay);
+    font-size: 0.95rem;
+  }
+
+  .how__steps {
+    list-style: none;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.85rem;
+  }
+
+  .how__step {
+    padding: 1.25rem 1.1rem;
+    margin: 0;
+  }
+
+  .how__num {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--bronze);
+  }
+
+  .how__step-title {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .how__step-body {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--ink) 88%, var(--clay));
+  }
+
+  .how__precedent {
+    padding: 1.25rem 1.35rem;
+    border-color: color-mix(in srgb, var(--forest) 35%, var(--clay));
+  }
+
+  .how__precedent-text {
+    margin: 0.35rem 0 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    max-width: 72ch;
+  }
+
+  @media (max-width: 900px) {
+    .how__steps {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

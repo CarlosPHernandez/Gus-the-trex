@@ -1,0 +1,116 @@
+---
+const tiers = [
+  { amount: 25, name: "Trace", note: "Supporter roll (coming soon)" },
+  { amount: 100, name: "Patron", note: "Dossier PDF (coming soon)" },
+  { amount: 500, name: "Expedition", note: "Dig updates (coming soon)" },
+  { amount: 2500, name: "Benefactor", note: "Stewards listing (coming soon)" },
+  { amount: 10000, name: "Steward", note: "Museum partnership intro (coming soon)" },
+];
+---
+
+<section class="tiers" aria-labelledby="tiers-heading">
+  <div class="container">
+    <h2 id="tiers-heading" class="display tiers__title">Pledge tiers</h2>
+    <p class="tiers__sub">
+      Non-binding pledges — no charge today. Tap a tier to add dollars to the public campaign total (live when Supabase is connected).
+      <a href="#faq">Read the pledge FAQ</a>.
+    </p>
+    <ul class="tiers__grid">
+      {
+        tiers.map((tier) => (
+          <li>
+            <article class="tier card">
+              <p class="tier__amount">${tier.amount.toLocaleString()}</p>
+              <h3 class="tier__name">{tier.name}</h3>
+              <p class="tier__note">{tier.note}</p>
+              <button
+                type="button"
+                class="btn tier__btn"
+                data-tier-amount={tier.amount}
+                data-tier-name={tier.name}
+              >
+                Pledge
+              </button>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .tiers {
+    padding: 3rem 0;
+    border-top: 1px solid color-mix(in srgb, var(--clay) 30%, transparent);
+  }
+
+  .tiers__title {
+    margin: 0 0 0.35rem;
+    font-size: 1.5rem;
+  }
+
+  .tiers__sub {
+    margin: 0 0 1.5rem;
+    color: var(--clay);
+    font-size: 0.92rem;
+  }
+
+  .tiers__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.65rem;
+  }
+
+  .tier {
+    padding: 1rem 0.85rem;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .tier__amount {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+  }
+
+  .tier__name {
+    margin: 0;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .tier__note {
+    margin: 0;
+    flex: 1;
+    font-size: 0.72rem;
+    color: var(--clay);
+    line-height: 1.35;
+  }
+
+  .tier__btn {
+    width: 100%;
+    padding: 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  @media (max-width: 900px) {
+    .tiers__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tiers__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,158 @@
+---
+---
+
+<aside class="pledge card" aria-labelledby="pledge-heading">
+  <p class="eyebrow">Campaign total</p>
+  <h2 id="pledge-heading" class="display pledge__headline">
+    A <em>T. rex</em> for everyone — not a private vault.
+  </h2>
+  <p class="pledge__amount" id="pledge-total" aria-live="polite">—</p>
+  <p class="pledge__meta" id="pledge-meta">Loading pledge data…</p>
+  <div class="pledge__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} id="pledge-bar-wrap">
+    <div class="pledge__fill" id="pledge-fill"></div>
+  </div>
+  <p class="pledge__context">
+    Bar shows progress against Sotheby's high estimate ($30M) for context — not a guaranteed purchase price.
+    Tier pledges are <a href="#faq">non-binding</a> until card processing is live.
+  </p>
+  <p class="pledge__join">
+    <a href="#coalition">Join the email coalition</a> to add your name to the public supporter count.
+  </p>
+</aside>
+
+<style>
+  .pledge {
+    padding: 1.75rem;
+  }
+
+  .pledge__headline {
+    margin: 0.5rem 0 1.25rem;
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
+    line-height: 1.25;
+    font-style: normal;
+  }
+
+  .pledge__headline em {
+    font-style: italic;
+  }
+
+  .pledge__amount {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.1;
+  }
+
+  .pledge__meta {
+    margin: 0.35rem 0 1rem;
+    font-size: 0.9rem;
+    color: var(--clay);
+  }
+
+  .pledge__bar {
+    height: 8px;
+    border: 1px solid var(--ink);
+    background: var(--bone);
+    overflow: hidden;
+  }
+
+  .pledge__fill {
+    height: 100%;
+    width: 0%;
+    background: var(--forest);
+    transition: width 0.6s ease;
+  }
+
+  .pledge__context {
+    margin: 0.75rem 0 0;
+    font-size: 0.78rem;
+    color: var(--clay);
+    line-height: 1.45;
+  }
+
+  .pledge__join {
+    margin: 0.65rem 0 0;
+    font-size: 0.85rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pledge__fill {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { CAMPAIGN_UPDATED, fetchCampaignStats } from "../lib/campaign.ts";
+  import { getLocalPledgeBonus } from "../lib/campaignLocal.ts";
+
+  const GOAL_CENTS = 3_000_000_000;
+
+  const totalEl = document.getElementById("pledge-total");
+  const metaEl = document.getElementById("pledge-meta");
+  const fillEl = document.getElementById("pledge-fill");
+  const barWrap = document.getElementById("pledge-bar-wrap");
+
+  let lastCents = 0;
+
+  function formatUsd(cents: number) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(cents / 100);
+  }
+
+  function animateCount(targetCents: number) {
+    if (!totalEl) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || targetCents === lastCents) {
+      totalEl.textContent = formatUsd(targetCents);
+      lastCents = targetCents;
+      return;
+    }
+
+    const start = performance.now();
+    const duration = 900;
+    const from = lastCents;
+
+    function frame(now: number) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const current = Math.round(from + (targetCents - from) * eased);
+      totalEl.textContent = formatUsd(current);
+      if (t < 1) requestAnimationFrame(frame);
+      else lastCents = targetCents;
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  function renderStats() {
+    fetchCampaignStats()
+      .then((stats) => {
+        const local = getLocalPledgeBonus();
+        const totalCents = stats.totalCents + (stats.live ? 0 : local.cents);
+        const pledgeCount = stats.pledgeCount + (stats.live ? 0 : local.count);
+
+        animateCount(totalCents);
+
+        if (metaEl) {
+          const liveTag = stats.live ? "live tally" : "offline tally · connect Supabase for shared totals";
+          metaEl.textContent = `${pledgeCount.toLocaleString()} pledges · ${stats.coalitionCount.toLocaleString()} coalition · ${liveTag}`;
+        }
+
+        const pct = Math.min(100, (totalCents / GOAL_CENTS) * 100);
+        if (fillEl) fillEl.style.width = `${pct}%`;
+        if (barWrap) barWrap.setAttribute("aria-valuenow", String(Math.round(pct)));
+      })
+      .catch(() => {
+        if (totalEl) totalEl.textContent = "$0 pledged";
+        if (metaEl) metaEl.textContent = "Unable to refresh campaign data";
+        if (fillEl) fillEl.style.width = "0%";
+      });
+  }
+
+  renderStats();
+  window.addEventListener(CAMPAIGN_UPDATED, renderStats);
+</script>

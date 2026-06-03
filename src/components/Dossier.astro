@@ -1,0 +1,127 @@
+---
+const sections = [
+  {
+    id: "discovery",
+    title: "Discovery",
+    body: `In 2021, paleontologists working with Theropoda Expeditions uncovered a remarkably complete <em>Tyrannosaurus rex</em> on private ranchland in western South Dakota. The land belonged to cattle rancher Gary "Gus" Licking, who had noticed teeth and bone fragments for years. The team named the specimen <strong>Gus</strong> in his honor after he died during the excavation.`,
+  },
+  {
+    id: "specimen",
+    title: "The specimen",
+    body: `Gus comprises 183 fossil bones—roughly 82% of the skeleton by bone count. The mount stands about 12.5 feet tall and 38 feet long, with a skull over four feet in length. Field excavation took roughly three summers; laboratory preparation took about three more.`,
+  },
+  {
+    id: "auction",
+    title: "The auction",
+    body: `Sotheby's will offer Gus in its Natural History auction in New York on <strong>14 July 2026</strong>, with a presale estimate of <strong>$20–30 million</strong>—among the highest ever placed on a dinosaur skeleton. Public viewing at Sotheby's galleries begins 1 July 2026.`,
+  },
+  {
+    id: "public-trust",
+    title: "Why public trust matters",
+    body: `When scientifically significant fossils enter private collections, researchers may lose reliable access to the specimen. Sue—the first auctioned <em>T. rex</em>—reached Chicago's Field Museum through a consortium of institutions and donors, not a single private buyer. This campaign advocates for the same outcome for Gus: permanent stewardship where the public and scientists can study and learn.`,
+  },
+];
+---
+
+<section class="dossier" id="dossier" aria-labelledby="dossier-heading">
+  <div class="container dossier__layout">
+    <div class="dossier__intro">
+      <h2 id="dossier-heading" class="display dossier__title">Dossier</h2>
+      <p class="dossier__lede">
+        Public facts drawn from press coverage and auction listings. Not affiliated with Sotheby's or Theropoda Expeditions.
+      </p>
+      <figure class="dossier__figure">
+        <img
+          src="/images/gus-skeleton-scale.jpeg"
+          alt="Person standing beside the mounted Gus skeleton for scale"
+          loading="lazy"
+          width="1200"
+          height="800"
+        />
+        <figcaption>Scale of the mount — western South Dakota excavation.</figcaption>
+      </figure>
+    </div>
+    <div class="dossier__accordion">
+      {
+        sections.map((section, i) => (
+          <details class="dossier__panel" id={`dossier-${section.id}`} open={i === 0}>
+            <summary>{section.title}</summary>
+            <div class="dossier__body" set:html={section.body} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .dossier {
+    padding: 3rem 0;
+    background: color-mix(in srgb, var(--parchment) 70%, var(--bone));
+    border-top: 1px solid color-mix(in srgb, var(--clay) 30%, transparent);
+  }
+
+  .dossier__layout {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .dossier__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+  }
+
+  .dossier__lede {
+    margin: 0 0 1.25rem;
+    color: var(--clay);
+    font-size: 0.92rem;
+  }
+
+  .dossier__figure {
+    margin: 0;
+  }
+
+  .dossier__figure img {
+    border-radius: var(--radius);
+    border: 1px solid color-mix(in srgb, var(--clay) 35%, transparent);
+  }
+
+  .dossier__figure figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--clay);
+  }
+
+  .dossier__panel {
+    border-top: 1px solid color-mix(in srgb, var(--clay) 35%, transparent);
+  }
+
+  .dossier__panel summary {
+    cursor: pointer;
+    padding: 1rem 0;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    list-style: none;
+  }
+
+  .dossier__panel summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .dossier__body {
+    padding: 0 0 1.25rem;
+    font-size: 0.98rem;
+  }
+
+  .dossier__body :global(p) {
+    margin: 0;
+  }
+
+  @media (max-width: 800px) {
+    .dossier__layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,140 @@
+---
+const faqs = [
+  {
+    id: "binding",
+    q: "Is my pledge binding?",
+    a: "No. Tier pledges are <strong>non-binding expressions of interest</strong> until card processing and a legal entity are in place. You will not be charged by selecting a tier today.",
+  },
+  {
+    id: "charge",
+    q: "When would I actually pay?",
+    a: "Only after we publish clear terms: who receives funds, refund policy, and what your tier includes. Until then, the pledge buttons and campaign bar are for demonstration and coalition-building.",
+  },
+  {
+    id: "email-vs-pledge",
+    q: "What is the difference between email signup and a tier pledge?",
+    a: "Email signup joins the <strong>public coalition roll</strong>—a headcount anyone can see. Tier pledges add a dollar amount to show financial seriousness. Both are non-binding until card processing is live.",
+  },
+  {
+    id: "live-data",
+    q: "Why doesn't my friend's pledge show on my phone?",
+    a: "Shared totals require the live database (Supabase). Without it, pledges save on each device only. Once Supabase is connected, every tier signup and email join updates the public counter for all visitors.",
+  },
+  {
+    id: "bar",
+    q: "What does the progress bar mean?",
+    a: "It compares pledged dollars (demo data) to Sotheby's <strong>$30M high estimate</strong> for context. It is not a guarantee that this site alone can buy Gus at auction.",
+  },
+  {
+    id: "use-of-funds",
+    q: "Where would money go when payments launch?",
+    a: "We intend to route funds through a transparent structure (e.g. fiscal sponsor or museum partner) toward legal coordination, partner outreach, and—if viable—a consortium acquisition fund. Exact percentages will be published before any charges.",
+  },
+  {
+    id: "tax",
+    q: "Are pledges tax-deductible?",
+    a: "Not yet. Tax-deductible giving requires a qualified nonprofit or fiscal sponsor. We will state eligibility clearly before accepting payments.",
+  },
+  {
+    id: "affiliation",
+    q: "Are you affiliated with Sotheby's or the sellers?",
+    a: "No. This is an independent educational campaign. We are not affiliated with Sotheby's, Theropoda Expeditions, or any museum unless a partnership is announced.",
+  },
+  {
+    id: "private-sale",
+    q: "What if Gus sells to a private buyer anyway?",
+    a: "The coalition still matters: public demand influences press, institutions, and future access negotiations. Our aim is maximum stewardship regardless of hammer price.",
+  },
+];
+---
+
+<section class="faq" id="faq" aria-labelledby="faq-heading">
+  <div class="container faq__layout">
+    <div class="faq__intro">
+      <h2 id="faq-heading" class="display faq__title">Pledge FAQ</h2>
+      <p class="faq__lede">
+        Straight answers about how participation works today—and what changes when payments go live.
+      </p>
+    </div>
+    <div class="faq__list">
+      {
+        faqs.map((item, i) => (
+          <details class="faq__panel" id={`faq-${item.id}`} open={i === 0}>
+            <summary>{item.q}</summary>
+            <div class="faq__body" set:html={item.a} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    padding: 3rem 0;
+    border-top: 1px solid color-mix(in srgb, var(--clay) 30%, transparent);
+  }
+
+  .faq__layout {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .faq__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+  }
+
+  .faq__lede {
+    margin: 0;
+    color: var(--clay);
+    font-size: 0.92rem;
+    max-width: 32ch;
+  }
+
+  .faq__panel {
+    border-bottom: 1px solid color-mix(in srgb, var(--clay) 35%, transparent);
+    padding: 0.85rem 0;
+  }
+
+  .faq__panel summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    list-style: none;
+  }
+
+  .faq__panel summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__panel summary::after {
+    content: "+";
+    float: right;
+    font-weight: 400;
+    color: var(--clay);
+  }
+
+  .faq__panel[open] summary::after {
+    content: "−";
+  }
+
+  .faq__body {
+    margin-top: 0.65rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--ink) 90%, var(--clay));
+  }
+
+  .faq__body p {
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .faq__layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
