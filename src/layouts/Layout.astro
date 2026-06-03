@@ -15,15 +15,19 @@ const {
 const siteOrigin = Astro.site?.href ?? Astro.url.origin;
 const pageUrl = new URL(Astro.url.pathname, siteOrigin).href;
 const ogImagePath = "/images/og-image.jpg";
+const twitterImagePath = "/images/twitter-card.jpg";
 const ogImage = new URL(ogImagePath, siteOrigin).href;
+const twitterImage = new URL(twitterImagePath, siteOrigin).href;
 const ogImageWidth = 1200;
 const ogImageHeight = 630;
 const ogImageAlt =
   "Gus the T. rex — fossil skeleton with campaign title, public stewardship before the July 2026 auction";
 const favicon = new URL("/favicon.svg", siteOrigin).href;
 const siteName = "Gus — public stewardship campaign";
+const twitterTitle = "Gus — Keep this T. rex in public trust";
 const twitterDescription =
-  "Help keep Gus—a remarkably complete T. rex—in public trust. Join the coalition before the July 2026 auction.";
+  "One of the most complete T. rex fossils ever prepared. Join the coalition before the July 2026 auction.";
+const twitterHandle = import.meta.env.PUBLIC_TWITTER_HANDLE?.replace(/^@/, "");
 ---
 
 <!doctype html>
@@ -46,12 +50,18 @@ const twitterDescription =
     <meta property="og:image:height" content={String(ogImageHeight)} />
     <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    {twitterHandle && <meta name="twitter:site" content={`@${twitterHandle}`} />}
+    {twitterHandle && <meta name="twitter:creator" content={`@${twitterHandle}`} />}
+    <meta name="twitter:title" content={twitterTitle} />
     <meta name="twitter:description" content={twitterDescription} />
     <meta name="twitter:url" content={pageUrl} />
-    <meta name="twitter:image" content={ogImage} />
-    <meta name="twitter:image:src" content={ogImage} />
+    <meta name="twitter:image" content={twitterImage} />
+    <meta name="twitter:image:src" content={twitterImage} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
+    <meta name="twitter:label1" content="Auction" />
+    <meta name="twitter:data1" content="14 July 2026" />
+    <meta name="twitter:label2" content="Join" />
+    <meta name="twitter:data2" content="Coalition & non-binding pledges" />
     <meta name="theme-color" content="#2d3a2e" />
     <link rel="canonical" href={pageUrl} />
     <link rel="icon" href={favicon} type="image/svg+xml" />
