@@ -12,16 +12,18 @@ const {
     "Help keep Gus—a remarkably complete Tyrannosaurus rex—in public trust. Campaign for museum stewardship ahead of the July 2026 auction.",
 } = Astro.props;
 
-const site = Astro.site ?? Astro.url;
-const pageUrl = new URL(Astro.url.pathname, site).href;
+const siteOrigin = Astro.site?.href ?? Astro.url.origin;
+const pageUrl = new URL(Astro.url.pathname, siteOrigin).href;
 const ogImagePath = "/images/og-image.jpg";
-const ogImage = new URL(ogImagePath, site).href;
+const ogImage = new URL(ogImagePath, siteOrigin).href;
 const ogImageWidth = 1200;
 const ogImageHeight = 630;
 const ogImageAlt =
-  "Gus the T. rex — fossil skeleton mounted in profile, public stewardship campaign";
-const favicon = new URL("/favicon.svg", site).href;
+  "Gus the T. rex — fossil skeleton with campaign title, public stewardship before the July 2026 auction";
+const favicon = new URL("/favicon.svg", siteOrigin).href;
 const siteName = "Gus — public stewardship campaign";
+const twitterDescription =
+  "Help keep Gus—a remarkably complete T. rex—in public trust. Join the coalition before the July 2026 auction.";
 ---
 
 <!doctype html>
@@ -45,9 +47,12 @@ const siteName = "Gus — public stewardship campaign";
     <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={twitterDescription} />
+    <meta name="twitter:url" content={pageUrl} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:src" content={ogImage} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
+    <meta name="theme-color" content="#2d3a2e" />
     <link rel="canonical" href={pageUrl} />
     <link rel="icon" href={favicon} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={favicon} />
