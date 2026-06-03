@@ -81,3 +81,7 @@ Local testing with the API route: `npm run dev:vercel` (requires [Vercel CLI](ht
 ## Deploy
 
 Static output works on Vercel (`dist/` after build). Vercel also runs `/api/*` serverless functions for Resend. Supabase uses the browser anon key only; never expose `SUPABASE_SERVICE_ROLE_KEY` or `RESEND_API_KEY` to the client.
+
+### Link previews (Twitter / iMessage / Slack)
+
+OG and Twitter Card tags are baked in at **build** time. On Vercel, `VERCEL_PROJECT_PRODUCTION_URL` supplies your production domain automatically; override with `CAMPAIGN_SITE_URL` if needed. The share image is `public/images/og-image.jpg` (1200×630). After deploy, refresh the cache with [Twitter’s Card Validator](https://cards-dev.twitter.com/validator) or similar tools—previews can lag until the crawler re-fetches the page.
