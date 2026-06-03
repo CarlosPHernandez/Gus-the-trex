@@ -1,11 +1,15 @@
+import { escapeHtml, safeSiteHref } from "./escape.mjs";
+
 function layout({ siteUrl, title, lede, bodyHtml }) {
-  const home = siteUrl || "#";
+  const home = safeSiteHref(siteUrl);
+  const safeTitle = escapeHtml(title);
+  const safeLede = escapeHtml(lede);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${title}</title>
+  <title>${safeTitle}</title>
 </head>
 <body style="margin:0;padding:0;background:#e8e2d6;font-family:Georgia,'Times New Roman',serif;color:#1c1916;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e8e2d6;padding:32px 16px;">
@@ -19,12 +23,12 @@ function layout({ siteUrl, title, lede, bodyHtml }) {
           </tr>
           <tr>
             <td style="padding:0 24px 12px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.15;color:#1c1916;">
-              ${title}
+              ${safeTitle}
             </td>
           </tr>
           <tr>
             <td style="padding:0 24px 20px;font-family:'Source Sans 3',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#2d3a2e;">
-              <p style="margin:0 0 16px;">${lede}</p>
+              <p style="margin:0 0 16px;">${safeLede}</p>
               ${bodyHtml}
             </td>
           </tr>
@@ -77,21 +81,26 @@ export function pledgeConfirmationEmail({
   amountDollars,
   displayName,
 }) {
-  const greeting = displayName ? `Hi ${displayName},` : "Hi there,";
+  const safeTierName = escapeHtml(tierName);
+  const amountLabel = amountDollars.toLocaleString("en-US");
+  const plainDisplayName = typeof displayName === "string" ? displayName.trim() : "";
+  const greeting = plainDisplayName ? `Hi ${plainDisplayName},` : "Hi there,";
   const title = "Pledge recorded";
   const lede = `${greeting} your non-binding pledge is on the public campaign total.`;
-  const bodyHtml = `<p style="margin:0 0 12px;"><strong>${tierName}</strong> tier · <strong>$${amountDollars.toLocaleString()}</strong> (non-binding)</p>
-<p style="margin:0;">This is not a charge — it records your intent so others can see momentum toward public stewardship before the Sotheby's auction on 14 July 2026.</p>`;
+  const bodyHtml = `<p style="margin:0 0 12px;"><strong>${safeTierName}</strong> tier · <strong>$${amountLabel}</strong> (non-binding)</p>
+<p style="margin:0;">This is not a charge — it records your intent so others can see momentum toward public stewardship before the Sotheby&apos;s auction on 14 July 2026.</p>`;
+
+  const plainTierName = typeof tierName === "string" ? tierName.trim() : "";
 
   return {
-    subject: `Your $${amountDollars.toLocaleString()} Gus pledge is recorded`,
+    subject: `Your $${amountLabel} Gus pledge is recorded`,
     html: layout({ siteUrl, title, lede, bodyHtml }),
     text: [
       "Your Gus pledge is recorded",
       "",
-      lede,
+      `${greeting} your non-binding pledge is on the public campaign total.`,
       "",
-      `${tierName} tier · $${amountDollars.toLocaleString()} (non-binding)`,
+      `${plainTierName} tier · $${amountLabel} (non-binding)`,
       "",
       "This is not a charge.",
       "",

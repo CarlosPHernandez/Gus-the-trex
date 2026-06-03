@@ -4,6 +4,7 @@ import {
   coalitionWelcomeEmail,
   pledgeConfirmationEmail,
 } from "./_lib/email-templates.mjs";
+import { isAllowedRequestOrigin } from "./_lib/origin.mjs";
 import { parseCampaignEmailBody } from "./_lib/validate.mjs";
 import {
   verifyRecentCoalitionJoin,
@@ -27,6 +28,19 @@ export default async function handler(request) {
     return jsonResponse({ error: "Email service not configured.", configured: false }, 503);
   }
 
+  const originCheck = isAllowedRequestOrigin(request);
+  if (!originCheck.ok) {
+    return jsonResponse({ error: originCheck.reason }, 403);
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+  if (!supabaseAdmin) {
+    return jsonResponse(
+      { error: "Email verification not configured.", configured: false },
+      503,
+    );
+  }
+
   let body;
   try {
     body = await request.json();
@@ -37,29 +51,26 @@ export default async function handler(request) {
   const parsed = parseCampaignEmailBody(body);
   if (parsed.error) return jsonResponse({ error: parsed.error }, 400);
 
-  const supabaseAdmin = getSupabaseAdmin();
-  if (supabaseAdmin) {
-    if (parsed.type === "coalition_welcome") {
-      const verified = await verifyRecentCoalitionJoin(supabaseAdmin, parsed.email);
-      if (verified.message) {
-        return jsonResponse({ error: verified.message }, 500);
-      }
-      if (!verified.ok) {
-        return jsonResponse({ error: "No recent coalition signup found for this email." }, 403);
-      }
-    } else {
-      const verified = await verifyRecentPledge(
-        supabaseAdmin,
-        parsed.email,
-        parsed.amountDollars,
-        parsed.tierName,
-      );
-      if (verified.message) {
-        return jsonResponse({ error: verified.message }, 500);
-      }
-      if (!verified.ok) {
-        return jsonResponse({ error: "No recent pledge found for this email." }, 403);
-      }
+  if (parsed.type === "coalition_welcome") {
+    const verified = await verifyRecentCoalitionJoin(supabaseAdmin, parsed.email);
+    if (verified.message) {
+      return jsonResponse({ error: verified.message }, 500);
+    }
+    if (!verified.ok) {
+      return jsonResponse({ error: "No recent coalition signup found for this email." }, 403);
+    }
+  } else {
+    const verified = await verifyRecentPledge(
+      supabaseAdmin,
+      parsed.email,
+      parsed.amountDollars,
+      parsed.tierName,
+    );
+    if (verified.message) {
+      return jsonResponse({ error: verified.message }, 500);
+    }
+    if (!verified.ok) {
+      return jsonResponse({ error: "No recent pledge found for this email." }, 403);
     }
   }
 
